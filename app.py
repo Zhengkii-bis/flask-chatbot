@@ -5,6 +5,18 @@ import textstat
 
 app = Flask(__name__)
 
+import os
+import subprocess
+
+def check_java():
+    try:
+        java_version = subprocess.check_output("java -version", shell=True, stderr=subprocess.STDOUT)
+        return java_version.decode()
+    except Exception as e:
+        return str(e)
+
+print("Java Version:", check_java())
+
 # Initialize tools
 tool = language_tool_python.LanguageTool('en-US')
 analyzer = SentimentIntensityAnalyzer()
