@@ -1,5 +1,5 @@
 flask
-flash-ngrok
+flask-ngrok
 gunicorn
 textstat
 language-tool-python
