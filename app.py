@@ -5,7 +5,7 @@ from spellchecker import SpellChecker
 import re
 from textblob import TextBlob
 
-app = Flask(__name__)
+app = Flask(__name__)  
 spell = SpellChecker()
 
 def check_grammar(text):
@@ -17,14 +17,22 @@ def check_grammar(text):
         "text": text
     }
     response = requests.get(url, params=params)
+    
     if response.status_code == 200:
         result = response.json()
         corrections = []
+        corrected_text = list(text)
+
         for suggestion in result.get("LightGingerTheTextResult", []):
             if "Suggestions" in suggestion and suggestion["Suggestions"]:
-                corrections.append(suggestion["Suggestions"][0]["Text"])
-        return corrections if corrections else ["No grammar issues found"]
-    return ["Grammar check failed"]
+                corrected_word = suggestion["Suggestions"][0]["Text"]
+                start = suggestion["From"]
+                end = suggestion["To"] + 1
+                corrected_text[start:end] = corrected_word
+                corrections.append((text[start:end], corrected_word))
+
+        return corrections, "".join(corrected_text)  # Return both corrections and corrected text
+    return [("Grammar check failed",)], text  # If API fails, return original text
 
 def analyze_organization(text):
     sentences = re.split(r'(?<=[.!?]) +', text)
@@ -38,7 +46,7 @@ def analyze_organization(text):
         feedback.append("Sentences may be too long. Consider breaking them up.")
     elif avg_sentence_length < 8:
         feedback.append("Sentences may be too short. Consider expanding ideas.")
-
+    
     if num_paragraphs < 2:
         feedback.append("Consider adding more paragraphs to improve readability.")
 
@@ -47,30 +55,23 @@ def analyze_organization(text):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     feedback = ""
+    corrected_essay = ""
+    
     if request.method == 'POST':
         essay = request.form['essay']
-        print("Received essay:", essay)  # Debugging
-        
         word_count = len(essay.split())
         spelling_mistakes = list(spell.unknown(essay.split()))
         readability = textstat.flesch_reading_ease(essay)
-        grammar_feedback = check_grammar(essay)
+        grammar_feedback, corrected_essay = check_grammar(essay)
         organization_feedback = analyze_organization(essay)
-
-        print("Word Count:", word_count)  # Debugging
-        print("Spelling Mistakes:", spelling_mistakes)  # Debugging
-        print("Readability Score:", readability)  # Debugging
-        print("Grammar Feedback:", grammar_feedback)  # Debugging
-        print("Organization Feedback:", organization_feedback)  # Debugging
 
         feedback = f"Word Count: {word_count}<br>"
         feedback += f"Spelling Mistakes: {', '.join(spelling_mistakes) if spelling_mistakes else 'None'}<br>"
         feedback += f"Readability Score: {readability:.2f}<br>"
-        feedback += "Grammar Feedback: " + ', '.join(grammar_feedback) + "<br>"
+        feedback += "Grammar Feedback: " + ', '.join([f"{wrong} → {correct}" for wrong, correct in grammar_feedback]) + "<br>"
         feedback += "Organization Feedback: " + ', '.join(organization_feedback)
 
-    return render_template('index.html', feedback=feedback)
+    return render_template('index.html', feedback=feedback, corrected_essay=corrected_essay)
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
