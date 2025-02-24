@@ -7,3 +7,4 @@ pyspellchecker
 bs4
 flask-wtf
 wtforms
+textblob
