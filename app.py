@@ -17,22 +17,27 @@ def check_grammar(text):
         "text": text
     }
     response = requests.get(url, params=params)
-    
-    if response.status_code == 200:
+
+    if response.status_code != 200:
+        print("Ginger API Error:", response.status_code, response.text)  # Debugging info
+        return [("Grammar check failed",)], text
+
+    try:
         result = response.json()
-        corrections = []
-        corrected_text = list(text)
+    except Exception as e:
+        print("JSON Parsing Error:", e)  # Debugging info
+        return [("Grammar check failed",)], text
 
-        for suggestion in result.get("LightGingerTheTextResult", []):
-            if "Suggestions" in suggestion and suggestion["Suggestions"]:
-                corrected_word = suggestion["Suggestions"][0]["Text"]
-                start = suggestion["From"]
-                end = suggestion["To"] + 1
-                corrected_text[start:end] = corrected_word
-                corrections.append((text[start:end], corrected_word))
+    corrections = []
+    corrected_text = list(text)
+    for suggestion in result.get("LightGingerTheTextResult", []):
+        if "Suggestions" in suggestion and suggestion["Suggestions"]:
+            corrected_word = suggestion["Suggestions"][0]["Text"]
+            start, end = suggestion["From"], suggestion["To"] + 1
+            corrected_text[start:end] = corrected_word
+            corrections.append((text[start:end], corrected_word))
 
-        return corrections, "".join(corrected_text)  # Return both corrections and corrected text
-    return [("Grammar check failed",)], text  # If API fails, return original text
+    return corrections, "".join(corrected_text)
 
 def analyze_organization(text):
     sentences = re.split(r'(?<=[.!?]) +', text)
