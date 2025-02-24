@@ -4,7 +4,6 @@ gunicorn
 textstat
 requests
 pyspellchecker
-re
 bs4
 flask-wtf
 wtforms
