@@ -1,4 +1,6 @@
 flask
-flask-ngrok
+flash-ngrok
 gunicorn
 textstat
+language-tool-python
+psyspellchecker
