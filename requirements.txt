@@ -2,5 +2,5 @@ flask
 flask-ngrok
 gunicorn
 textstat
-language-tool-python
+requests
 pyspellchecker
