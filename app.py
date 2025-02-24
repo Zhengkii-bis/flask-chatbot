@@ -1,4 +1,8 @@
-from flask import Flask, render_template, request import textstat import requests from spellchecker import SpellChecker import re
+from flask import Flask, render_template, request
+import textstat
+import requests
+from spellchecker import SpellChecker
+import re
 
 app = Flask(name) spell = SpellChecker()
 
