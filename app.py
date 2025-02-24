@@ -1,61 +1,31 @@
-from flask import Flask, render_template, request
-import textstat
-import language_tool_python
-from spellchecker import SpellChecker
+from flask import Flask, render_template, request import textstat import requests from spellchecker import SpellChecker import re
 
-app = Flask(__name__)
-tool = language_tool_python.LanguageTool('en-US')
-spell = SpellChecker()
+app = Flask(name) spell = SpellChecker()
 
-def analyze_essay(essay):
-    feedback = []
-    
-    # Word Count
-    word_count = len(essay.split())
-    feedback.append(f"<strong>Word Count:</strong> {word_count}")
-    
-    # Readability Score
-    readability_score = textstat.flesch_reading_ease(essay)
-    feedback.append(f"<strong>Readability Score:</strong> {readability_score:.2f} (Higher is easier to read)")
-    
-    # Spelling Mistakes
-    words = essay.split()
-    misspelled = spell.unknown(words)
-    if misspelled:
-        feedback.append(f"<strong>Potential Spelling Mistakes:</strong> {', '.join(misspelled)}")
-    else:
-        feedback.append("<strong>No spelling mistakes detected.</strong>")
-    
-    # Grammar Check
-    grammar_errors = tool.check(essay)
-    if grammar_errors:
-        feedback.append(f"<strong>Grammar Issues Found:</strong> {len(grammar_errors)}")
-        for error in grammar_errors[:5]:  # Show first 5 errors only
-            feedback.append(f"- {error.message} (<em>Suggestion:</em> {', '.join(error.replacements)})")
-    else:
-        feedback.append("<strong>No grammar issues detected.</strong>")
-    
-    # Organization Check (Basic: Checks if paragraphs are present)
-    paragraphs = essay.strip().split("\n")
-    if len(paragraphs) < 2:
-        feedback.append("<strong>Consider breaking your essay into paragraphs for better organization.</strong>")
-    else:
-        feedback.append("<strong>Your essay has a good paragraph structure.</strong>")
-    
-    return "<br>".join(feedback)
+def check_grammar(text): url = "https://services.gingersoftware.com/Ginger/correct/jsonSecured/GingerTheText" params = { "lang": "US", "clientVersion": "2.0", "apiKey": "6ae0c3a0-afdc-4532-a810-82ded0054236", "text": text } response = requests.get(url, params=params) if response.status_code == 200: result = response.json() corrections = [] for suggestion in result.get("LightGingerTheTextResult", []): if "Suggestions" in suggestion and suggestion["Suggestions"]: corrections.append(suggestion["Suggestions"][0]["Text"]) return corrections if corrections else ["No grammar issues found"] return ["Grammar check failed"]
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    feedback = ""
-    if request.method == "POST":
-        essay = request.form.get("essay")
-        if essay:
-            feedback = analyze_essay(essay)
-        else:
-            feedback = "<strong>Please enter an essay.</strong>"
-    
-    return render_template("index.html", feedback=feedback)
+def analyze_organization(text): sentences = re.split(r'(?<=[.!?]) +', text) num_sentences = len(sentences) avg_sentence_length = sum(len(s.split()) for s in sentences) / num_sentences if num_sentences else 0 paragraphs = text.split("\n") num_paragraphs = len([p for p in paragraphs if p.strip()])
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=True)
-    
+feedback = []
+if avg_sentence_length > 25:
+    feedback.append("Sentences may be too long. Consider breaking them up.")
+elif avg_sentence_length < 8:
+    feedback.append("Sentences may be too short. Consider expanding ideas.")
+
+if num_paragraphs < 2:
+    feedback.append("Consider adding more paragraphs to improve readability.")
+
+return feedback if feedback else ["Organization looks good."]
+
+@app.route('/', methods=['GET', 'POST']) def index(): feedback = "" if request.method == 'POST': essay = request.form['essay'] word_count = len(essay.split()) spelling_mistakes = list(spell.unknown(essay.split())) readability = textstat.flesch_reading_ease(essay) grammar_feedback = check_grammar(essay) organization_feedback = analyze_organization(essay)
+
+feedback = f"Word Count: {word_count}<br>"
+    feedback += f"Spelling Mistakes: {', '.join(spelling_mistakes) if spelling_mistakes else 'None'}<br>"
+    feedback += f"Readability Score: {readability:.2f}<br>"
+    feedback += "Grammar Feedback: " + ', '.join(grammar_feedback) + "<br>"
+    feedback += "Organization Feedback: " + ', '.join(organization_feedback)
+
+return render_template('index.html', feedback=feedback)
+
+if name == 'main': app.run(debug=True)
+
