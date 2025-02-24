@@ -7,38 +7,27 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
         textarea { width: 100%; height: 150px; }
-        .container { max-width: 800px; margin: auto; }
-        .result-box { border: 1px solid #ddd; padding: 10px; margin-top: 10px; background: #f9f9f9; }
-        button { background-color: #28a745; color: white; padding: 10px; border: none; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        .container { max-width: 600px; margin: auto; }
+        .button { background-color: green; color: white; padding: 10px; border: none; cursor: pointer; }
+        .result-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Essay Evaluator</h2>
-        <form method="POST">
-            <label for="essay">Enter your essay:</label><br>
-            <textarea name="essay" id="essay" required></textarea><br>
-            <button type="submit">Evaluate</button>
+        <form method="post">
+            <label>Enter your essay:</label><br>
+            <textarea name="essay" required></textarea><br>
+            <button class="button" type="submit">Evaluate</button>
         </form>
-
-        {% if feedback %}
         <div class="result-box">
             <h3>Evaluation Results</h3>
-            <p><strong>Word Count:</strong> {{ feedback.split('<br>')[0] }}</p>
-            <p><strong>Spelling Mistakes:</strong> {{ feedback.split('<br>')[1] }}</p>
-            <p><strong>Readability Score:</strong> {{ feedback.split('<br>')[2] }}</p>
-            <p><strong>Grammar Feedback:</strong> {{ feedback.split('<br>')[3] }}</p>
-            <p><strong>Organization Feedback:</strong> {{ feedback.split('<br>')[4] }}</p>
+            <p><strong>Word Count:</strong> {{ feedback|safe }}</p>
         </div>
-        {% endif %}
-
-        {% if corrected_essay %}
         <div class="result-box">
-            <h3>Corrected Essay</h3>
+            <h3>Corrected Version</h3>
             <p>{{ corrected_essay }}</p>
         </div>
-        {% endif %}
     </div>
 </body>
 </html>
