@@ -3,31 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Essay Evaluator</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
-        textarea { width: 100%; height: 150px; }
-        .container { max-width: 600px; margin: auto; }
-        .button { background-color: green; color: white; padding: 10px; border: none; cursor: pointer; }
-        .result-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
-    </style>
+    <title>AI Essay Evaluator</title>
+    <script>
+        async function evaluateEssay() {
+            let essay = document.getElementById("essay").value;
+            let response = await fetch("/evaluate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ essay: essay })
+            });
+
+            let result = await response.json();
+            if (response.ok) {
+                document.getElementById("wordCount").innerText = result.word_count;
+                document.getElementById("readability").innerText = result.readability_score;
+                document.getElementById("gradeLevel").innerText = result.grade_level;
+
+                document.getElementById("sentimentPositive").innerText = result.sentiment_analysis.positive;
+                document.getElementById("sentimentNeutral").innerText = result.sentiment_analysis.neutral;
+                document.getElementById("sentimentNegative").innerText = result.sentiment_analysis.negative;
+
+                let grammarFeedback = result.grammar_feedback.map(fb => 
+                    `<li>${fb.ruleId}: ${fb.message} (Suggestions: ${fb.suggestions.join(", ")})</li>`
+                ).join("");
+                document.getElementById("grammarFeedback").innerHTML = grammarFeedback || "No grammar mistakes found.";
+
+                document.getElementById("finalFeedback").innerText = result.final_feedback.join(" ");
+                document.getElementById("correctedEssay").innerText = result.corrected_essay;
+            } else {
+                alert("Error: " + result.error);
+            }
+        }
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h2>Essay Evaluator</h2>
-        <form method="post">
-            <label>Enter your essay:</label><br>
-            <textarea name="essay" required></textarea><br>
-            <button class="button" type="submit">Evaluate</button>
-        </form>
-        <div class="result-box">
-            <h3>Evaluation Results</h3>
-            <p><strong>Word Count:</strong> {{ feedback|safe }}</p>
-        </div>
-        <div class="result-box">
-            <h3>Corrected Version</h3>
-            <p>{{ corrected_essay }}</p>
-        </div>
-    </div>
+    <h1>📜 AI Essay Evaluator</h1>
+    <textarea id="essay" rows="10" cols="50" placeholder="Enter your essay here..."></textarea>
+    <br>
+    <button onclick="evaluateEssay()">Evaluate</button>
+
+    <h2>📝 Evaluation Results</h2>
+    <p><strong>Word Count:</strong> <span id="wordCount"></span></p>
+    <p><strong>Readability Score:</strong> <span id="readability"></span></p>
+    <p><strong>Estimated Grade Level:</strong> <span id="gradeLevel"></span></p>
+
+    <h3>📖 Grammar & Spelling Feedback</h3>
+    <ul id="grammarFeedback"></ul>
+
+    <h3>📊 Sentiment Analysis</h3>
+    <p><strong>Positive:</strong> <span id="sentimentPositive"></span></p>
+    <p><strong>Neutral:</strong> <span id="sentimentNeutral"></span></p>
+    <p><strong>Negative:</strong> <span id="sentimentNegative"></span></p>
+
+    <h3>✔️ Final Feedback</h3>
+    <p id="finalFeedback"></p>
+
+    <h3>✍️ Corrected Essay</h3>
+    <p id="correctedEssay"></p>
 </body>
 </html>
