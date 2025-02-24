@@ -57,24 +57,35 @@ def analyze_organization(text):
 
     return feedback if feedback else ["Organization looks good."]
 
+import traceback  # Add this for error tracking
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     feedback = ""
     corrected_essay = ""
-    
-    if request.method == 'POST':
-        essay = request.form['essay']
-        word_count = len(essay.split())
-        spelling_mistakes = list(spell.unknown(essay.split()))
-        readability = textstat.flesch_reading_ease(essay)
-        grammar_feedback, corrected_essay = check_grammar(essay)
-        organization_feedback = analyze_organization(essay)
+    try:
+        if request.method == 'POST':
+            essay = request.form['essay']
+            if not essay.strip():
+                return render_template('index.html', feedback="Error: Essay is empty", corrected_essay="")
 
-        feedback = f"Word Count: {word_count}<br>"
-        feedback += f"Spelling Mistakes: {', '.join(spelling_mistakes) if spelling_mistakes else 'None'}<br>"
-        feedback += f"Readability Score: {readability:.2f}<br>"
-        feedback += "Grammar Feedback: " + ', '.join([f"{wrong} → {correct}" for wrong, correct in grammar_feedback]) + "<br>"
-        feedback += "Organization Feedback: " + ', '.join(organization_feedback)
+            word_count = len(essay.split())
+            spelling_mistakes = list(spell.unknown(essay.split()))
+            readability = textstat.flesch_reading_ease(essay)
+
+            grammar_feedback, corrected_essay = check_grammar(essay)
+            organization_feedback = analyze_organization(essay)
+
+            feedback = f"Word Count: {word_count}<br>"
+            feedback += f"Spelling Mistakes: {', '.join(spelling_mistakes) if spelling_mistakes else 'None'}<br>"
+            feedback += f"Readability Score: {readability:.2f}<br>"
+            feedback += "Grammar Feedback: " + ', '.join([f"{orig} → {corr}" for orig, corr in grammar_feedback]) + "<br>"
+            feedback += "Organization Feedback: " + ', '.join(organization_feedback)
+
+    except Exception as e:
+        print("Error:", e)
+        traceback.print_exc()  # Show full error details in logs
+        return render_template('index.html', feedback="Internal Server Error. Check logs for details.", corrected_essay="")
 
     return render_template('index.html', feedback=feedback, corrected_essay=corrected_essay)
 
