@@ -3,4 +3,4 @@ flask-ngrok
 gunicorn
 textstat
 language-tool-python
-psyspellchecker
+pyspellchecker
