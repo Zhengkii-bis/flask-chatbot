@@ -74,8 +74,6 @@ def index():
         data = request.get_json()
         essay = data.get("essay", "")
 
-        essay_cleaned = clean_text(essay)
-    
         word_count = len(essay.split())
         spelling_mistakes = check_spelling(essay)
         readability = textstat.flesch_reading_ease(essay)
