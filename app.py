@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import textstat
-from gingerit.gingerit import GingerIt
+from gingerit import GingerIt
 from symspellpy import SymSpell, Verbosity
 import re
 import os
