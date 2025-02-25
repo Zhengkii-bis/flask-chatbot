@@ -78,8 +78,6 @@ def index():
         })
 
     return render_template("index.html")
-print("Received essay:", essay)
-print("Grammar feedback:", grammar_feedback)
-print("Corrected essay:", corrected_essay)
+
 if __name__ == '__main__':
     app.run(debug=True)
