@@ -2,6 +2,5 @@ Flask
 textstat
 requests
 symspellpy
-pkg_resources
 gunicorn
 setuptools
