@@ -20,33 +20,32 @@ def check_spelling(text):
         if not suggestions:
             misspelled.append(word)  # If no suggestions, consider it misspelled
     
-    return misspelled
-    
-def check_grammar(text):
+    return misspelled    
+
+def correct_grammar(text):
     url = "https://api.languagetool.org/v2/check"
     params = {
         "text": text,
         "language": "en-US"
     }
+
     response = requests.post(url, data=params)
+
     if response.status_code == 200:
         result = response.json()
-        suggestions = []
-        for match in result.get("matches", []):
-            if "replacements" in match and match["replacements"]:
-                suggestions.append(match["replacements"][0]["value"])
-        return suggestions if suggestions else ["No grammar issues found"]
-    return ["Grammar check failed"]
-    print("GrammarBot API response:", response.json())
+        corrected_text = text
 
-def correct_spelling(text):
-    words = text.split()
-    corrected_words = []
-    for word in words:
-        suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
-        corrected_words.append(suggestions[0].term if suggestions else word)
-    return " ".join(corrected_words)
+        # Apply corrections from LanguageTool
+        for match in reversed(result.get("matches", [])):
+            offset = match["offset"]
+            length = match["length"]
+            replacement = match["replacements"][0]["value"] if match["replacements"] else ""
+            corrected_text = corrected_text[:offset] + replacement + corrected_text[offset+length:]
 
+        return corrected_text
+    else:
+        return text  # Return original text if API call fails= []
+            
 def analyze_organization(text):
     sentences = re.split(r'(?<=[.!?]) +', text)
     num_sentences = len(sentences)
