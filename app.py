@@ -1,97 +1,54 @@
-from flask import Flask, request, render_template, jsonify
-import language_tool_python
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from flask import Flask, render_template, request
 import textstat
+from spellchecker import SpellChecker
+import re
+from textblob import TextBlob
 
 app = Flask(__name__)
+spell = SpellChecker()
 
-import os
-import subprocess
+def check_grammar(text):
+    blob = TextBlob(text)
+    corrected_text = blob.correct()
+    return str(corrected_text)
 
-def check_java():
-    try:
-        java_version = subprocess.check_output("java -version", shell=True, stderr=subprocess.STDOUT)
-        return java_version.decode()
-    except Exception as e:
-        return str(e)
+def analyze_organization(text):
+    sentences = re.split(r'(?<=[.!?]) +', text)
+    num_sentences = len(sentences)
+    avg_sentence_length = sum(len(s.split()) for s in sentences) / num_sentences if num_sentences else 0
+    paragraphs = text.split("\n")
+    num_paragraphs = len([p for p in paragraphs if p.strip()])
 
-print("Java Version:", check_java())
+    feedback = []
+    if avg_sentence_length > 25:
+        feedback.append("Sentences may be too long. Consider breaking them up.")
+    elif avg_sentence_length < 8:
+        feedback.append("Sentences may be too short. Consider expanding ideas.")
 
-# Initialize tools
-tool = language_tool_python.LanguageTool('en-US')
-analyzer = SentimentIntensityAnalyzer()
+    if num_paragraphs < 2:
+        feedback.append("Consider adding more paragraphs to improve readability.")
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+    return feedback if feedback else ["Organization looks good."]
 
-@app.route('/evaluate', methods=['POST'])
-def evaluate():
-    try:
-        data = request.json
-        essay = data.get('essay', '')
-
-        if not essay.strip():
-            return jsonify({"error": "No text provided"}), 400
-
-        # Word Count
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    feedback = ""
+    corrected_essay = ""
+    
+    if request.method == 'POST':
+        essay = request.form['essay']
         word_count = len(essay.split())
+        spelling_mistakes = list(spell.unknown(essay.split()))
+        readability = textstat.flesch_reading_ease(essay)
+        corrected_essay = check_grammar(essay)
+        organization_feedback = analyze_organization(essay)
 
-        # Grammar & Spelling Suggestions
-        matches = tool.check(essay)
-        grammar_feedback = [
-            {"ruleId": match.ruleId, "message": match.message, "suggestions": match.replacements}
-            for match in matches[:5]  # Limit to 5 suggestions
-        ]
-        corrected_essay = tool.correct(essay)
-
-        # Readability Analysis
-        flesch_score = textstat.flesch_reading_ease(essay)
-        grade_level = textstat.flesch_kincaid_grade(essay)
-
-        # Sentiment Analysis
-        sentiment_score = analyzer.polarity_scores(essay)
-        positive = sentiment_score['pos']
-        neutral = sentiment_score['neu']
-        negative = sentiment_score['neg']
-
-        # Argument Feedback
-        if positive > negative:
-            argument_feedback = "Your essay has a clear and positive tone."
-        elif neutral > 0.6:
-            argument_feedback = "Your essay may need stronger arguments."
-        else:
-            argument_feedback = "Your essay seems unclear. Try refining your arguments."
-
-        # Final Feedback
-        feedback = []
-        if matches:
-            feedback.append("Consider improving grammar using the suggested corrections.")
-        else:
-            feedback.append("Great job! No grammar mistakes found.")
-
-        if flesch_score < 50:
-            feedback.append("Try simplifying your sentences to improve readability.")
-        else:
-            feedback.append("Your readability is good.")
-
-        feedback.append(argument_feedback)
-
-        return jsonify({
-            "word_count": word_count,
-            "grammar_feedback": grammar_feedback,
-            "readability_score": flesch_score,
-            "grade_level": grade_level,
-            "sentiment_analysis": {
-                "positive": f"{positive*100:.2f}%",
-                "neutral": f"{neutral*100:.2f}%",
-                "negative": f"{negative*100:.2f}%"
-            },
-            "final_feedback": feedback,
-            "corrected_essay": corrected_essay
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        feedback = f"Word Count: {word_count}<br>"
+        feedback += f"Spelling Mistakes: {', '.join(spelling_mistakes) if spelling_mistakes else 'None'}<br>"
+        feedback += f"Readability Score: {readability:.2f}<br>"
+        feedback += "Organization Feedback: " + ', '.join(organization_feedback)
+        
+    return render_template('index.html', feedback=feedback, corrected_essay=corrected_essay)
 
 if __name__ == '__main__':
     app.run(debug=True)
