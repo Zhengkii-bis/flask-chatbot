@@ -4,3 +4,4 @@ requests
 symspellpy
 gunicorn
 setuptools
+nltk
