@@ -7,11 +7,21 @@ import pkg_resources
 
 app = Flask(__name__)
 
-# Initialize SymSpell for spelling correction
-sym_spell = SymSpell()
-dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
-sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
+# Load SymSpell
+sym_spell = SymSpell(max_dictionary_edit_distance=2)
+sym_spell.load_dictionary("frequency_dictionary_en_82_765.txt", term_index=0, count_index=1)
 
+def check_spelling(text):
+    words = text.split()
+    misspelled = []
+    
+    for word in words:
+        suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
+        if not suggestions:
+            misspelled.append(word)  # If no suggestions, consider it misspelled
+    
+    return misspelled
+    
 def check_grammar(text):
     url = "https://api.languagetool.org/v2/check"
     params = {
