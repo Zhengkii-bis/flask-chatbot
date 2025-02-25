@@ -7,12 +7,10 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 40px;
             padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
+            max-width: 800px;
+            margin: auto;
         }
         textarea {
             width: 100%;
@@ -20,45 +18,39 @@
             padding: 10px;
         }
         button {
-            display: block;
-            width: 100%;
-            padding: 10px;
+            padding: 10px 20px;
             margin-top: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        .result {
+        .output {
             margin-top: 20px;
             padding: 10px;
-            background: white;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
         }
     </style>
 </head>
 <body>
 
     <h1>AI Essay Evaluator</h1>
-    
-    <form method="POST">
-        <label for="essay">Enter your essay:</label>
-        <textarea id="essay" name="essay" required></textarea>
-        <button type="submit">Analyze Essay</button>
+    <form action="/" method="post">
+        <label for="essay">Enter your essay:</label><br>
+        <textarea name="essay" id="essay"></textarea><br>
+        <button type="submit">Evaluate</button>
     </form>
 
     {% if feedback %}
-        <div class="result">
+        <div class="output">
             <h2>Analysis Results</h2>
-            <p>{{ feedback | safe }}</p>
+            <p><strong>Word Count:</strong> {{ word_count }}</p>
+            <p><strong>Spelling Mistakes:</strong> {{ spelling_mistakes }}</p>
+            <p><strong>Readability Score:</strong> {{ readability }}</p>
+            <p><strong>Grammar Suggestions:</strong> {{ grammar_feedback }}</p>
+            <p><strong>Organization Feedback:</strong> {{ organization_feedback }}</p>
         </div>
     {% endif %}
 
     {% if corrected_essay %}
-        <div class="result">
+        <div class="output">
             <h2>Corrected Essay</h2>
             <p>{{ corrected_essay }}</p>
         </div>
