@@ -5,28 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Essay Evaluator</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            padding: 20px;
-            max-width: 800px;
-            margin: auto;
+    /* General styling */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #121212; /* Deep black background */
+        color: #EDEDED; /* Soft white text */
+        margin: 40px;
+        padding: 20px;
+        max-width: 800px;
+        margin: auto;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        color: #c6a3ff; /* Light violet accent */
+        border-bottom: 2px solid #c6a3ff;
+        padding-bottom: 10px;
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    /* Textarea input */
+    textarea {
+        width: 100%;
+        height: 200px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #1E1E1E; /* Dark grey */
+        border: 2px solid #c6a3ff;
+        color: #EDEDED;
+        font-size: 16px;
+        outline: none;
+        resize: none;
+    }
+
+    textarea:focus {
+        border-color: #9d74e7; /* Slight glow effect */
+    }
+
+    /* Buttons */
+    button {
+        width: 100%;
+        background: linear-gradient(135deg, #c6a3ff, #9d74e7);
+        color: #fff;
+        border: none;
+        padding: 12px 20px;
+        font-size: 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: linear-gradient(135deg, #9d74e7, #c6a3ff);
+        transform: scale(1.05);
+    }
+
+    /* Results Output */
+    .output {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        background: #1E1E1E; /* Dark grey background */
+        border: 2px solid #c6a3ff;
+        box-shadow: 0 0 10px rgba(198, 163, 255, 0.5);
+    }
+
+    .output h2 {
+        font-size: 22px;
+        color: #c6a3ff;
+        margin-bottom: 10px;
+    }
+
+    p strong {
+        color: #EDEDED;
+    }
+
+    /* Fancy fade-in effect */
+    .output {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeIn 0.6s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 10px;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-        }
-        .output {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-        }
+    }
     </style>
 </head>
 <body>
@@ -45,6 +122,7 @@
         <p><strong>Readability Score:</strong> <span id="readability"></span></p>
         <p><strong>Grammar Suggestions:</strong> <span id="grammarFeedback"></span></p>
         <p><strong>Organization Feedback:</strong> <span id="organizationFeedback"></span></p>
+        <p><strong>Overall Grade:</strong> <span id="overallGrade"></span></p>
     </div>
 
     <div id="correctedEssayDiv" class="output" style="display:none;">
@@ -75,6 +153,7 @@
                 document.getElementById("grammarFeedback").innerText = data.grammar_feedback || "No issues found.";
                 document.getElementById("organizationFeedback").innerText = data.organization_feedback || "Looks good!";
                 document.getElementById("correctedEssay").innerText = data.corrected_essay;
+                document.getElementById("overallGrade").innerText = data.overall_grade + "%";
 
                 document.getElementById("results").style.display = "block";
                 document.getElementById("correctedEssayDiv").style.display = "block";
