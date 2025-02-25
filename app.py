@@ -76,7 +76,7 @@ def clean_text(text):
     sentences = sent_tokenize(text)  # Split text into sentences
     return " ".join(sentences)  # Join them back to maintain proper sentence structure
 
-essay_cleaned = clean_text(essay)
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -84,6 +84,8 @@ def index():
         data = request.get_json()
         essay = data.get("essay", "")
 
+        essay_cleaned = clean_text(essay)
+    
         word_count = len(essay.split())
         spelling_mistakes = check_spelling(essay)
         readability = textstat.flesch_reading_ease(essay_cleaned)
