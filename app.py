@@ -22,13 +22,9 @@ def check_spelling(text):
     
     return misspelled    
 
-def correct_grammar(text):
 
             
-def analyze_organization(text):
-    sentences = re.split(r'(?<=[.!?]) +', text)
-    num_sentences = len(sentences)
-    avg_sentencimport requests
+
 
 def check_grammar(text):
     url = "https://api.languagetool.org/v2/check"
@@ -52,7 +48,10 @@ def check_grammar(text):
     else:
         return "Error checking grammar."
        
-        e_length = sum(len(s.split()) for s in sentences) / num_sentences if num_sentences else 0
+   def analyze_organization(text):
+    sentences = re.split(r'(?<=[.!?]) +', text)
+    num_sentences = len(sentences)
+    avg_sentence_length = sum(len(s.split()) for s in sentences) / num_sentences if num_sentences else 0
     paragraphs = text.split("\n")
     num_paragraphs = len([p for p in paragraphs if p.strip()])
     
