@@ -22,8 +22,6 @@ def check_spelling(text):
     
     return misspelled    
 
-
-            
 def correct_grammar(text):
     url = "https://api.languagetool.org/v2/check"
     params = {
@@ -37,7 +35,7 @@ def correct_grammar(text):
         matches = result.get("matches", [])
         
         if not matches:
-            return text  # No corrections needed
+            return text, 0  # No corrections needed, 0 grammar issues
 
         corrected_text = list(text)  # Convert to list to allow modifications
         for match in reversed(matches):  # Reverse to avoid index shift issues
@@ -47,11 +45,10 @@ def correct_grammar(text):
                 end = start + match["length"]
                 corrected_text[start:end] = suggestion  # Apply correction
 
-        return "".join(corrected_text)  # Return corrected essay
+        return "".join(corrected_text), len(matches)  # Return corrected essay + count of grammar issues
     else:
-        return text  # Return original text if API fails
-       
-    
+        return text, 0  # Return original text with 0 issues if API fails
+                
     
 def analyze_organization(text):
     sentences = re.split(r'(?<=[.!?]) +', text)
@@ -64,8 +61,7 @@ def analyze_organization(text):
     if avg_sentence_length > 25:
         feedback.append("Sentences may be too long. Consider breaking them up.")
     elif avg_sentence_length < 8:
-        feedback.append("Sentences may be too short. Consider expanding ideas.")
-    
+        feedback.append("Sentences may be too short. Consdef correct_grammar(text):        
     if num_paragraphs < 2:
         feedback.append("Consider adding more paragraphs to improve readability.")
     
@@ -108,17 +104,15 @@ def index():
         word_count = len(essay.split())
         spelling_mistakes = check_spelling(essay)
         readability = textstat.flesch_reading_ease(essay)
-        grammar_feedback = correct_grammar(essay)
         organization_feedback = analyze_organization(essay)
-        corrected_essay = correct_grammar(essay)
+        corrected_essay, grammar_issues = correct_grammar(essay)  # Now getting grammar issue count
 
-        overall_grade = calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback)
-        
+        overall_grade = calculate_grade(readability, spelling_mistakes, grammar_issues, organization_feedback)  # Pass grammar_issues instead of undefined variable
+
         return jsonify({
             "word_count": word_count,
             "spelling_mistakes": spelling_mistakes,
             "readability": readability,
-            "grammar_feedback": grammar_feedback,
             "organization_feedback": organization_feedback,
             "corrected_essay": corrected_essay,
             "overall_grade": overall_grade
