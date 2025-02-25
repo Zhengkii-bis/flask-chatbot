@@ -89,10 +89,13 @@ def calculate_grade(readability, spelling_mistakes, grammar_feedback, organizati
     elif grammar_count > 2:
         score -= 10
 
+    # Convert organization_feedback list to a single string
+    organization_text = " ".join(organization_feedback).lower() if isinstance(organization_feedback, list) else organization_feedback.lower()
+
     # Adjust score based on organization feedback
-    if "poor" in organization_feedback.lower():
+    if "poor" in organization_text:
         score -= 15
-    elif "needs improvement" in organization_feedback.lower():
+    elif "needs improvement" in organization_text:
         score -= 10
 
     # Ensure score is within 0-100 range
