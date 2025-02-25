@@ -23,33 +23,36 @@ def check_spelling(text):
     return misspelled    
 
 def correct_grammar(text):
+
+            
+def analyze_organization(text):
+    sentences = re.split(r'(?<=[.!?]) +', text)
+    num_sentences = len(sentences)
+    avg_sentencimport requests
+
+def check_grammar(text):
     url = "https://api.languagetool.org/v2/check"
     params = {
         "text": text,
         "language": "en-US"
     }
-
     response = requests.post(url, data=params)
-
+    
     if response.status_code == 200:
         result = response.json()
-        corrected_text = text
-
-        # Apply corrections from LanguageTool
-        for match in reversed(result.get("matches", [])):
-            offset = match["offset"]
-            length = match["length"]
-            replacement = match["replacements"][0]["value"] if match["replacements"] else ""
-            corrected_text = corrected_text[:offset] + replacement + corrected_text[offset+length:]
-
-        return corrected_text
+        feedback = []
+        for match in result.get("matches", []):
+            if match["replacements"]:
+                suggestion = match["replacements"][0]["value"]
+                feedback.append(f"{match['message']} Suggested correction: {suggestion}")
+            else:
+                feedback.append(match["message"])
+        
+        return " | ".join(feedback) if feedback else "No grammar issues found."
     else:
-        return text  # Return original text if API call fails= []
-            
-def analyze_organization(text):
-    sentences = re.split(r'(?<=[.!?]) +', text)
-    num_sentences = len(sentences)
-    avg_sentence_length = sum(len(s.split()) for s in sentences) / num_sentences if num_sentences else 0
+        return "Error checking grammar."
+       
+        e_length = sum(len(s.split()) for s in sentences) / num_sentences if num_sentences else 0
     paragraphs = text.split("\n")
     num_paragraphs = len([p for p in paragraphs if p.strip()])
     
