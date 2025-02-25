@@ -75,7 +75,7 @@ def index():
         word_count = len(essay.split())
         spelling_mistakes = check_spelling(essay)
         readability = textstat.flesch_reading_ease(essay)
-        grammar_feedback = check_grammar(essay)
+        grammar_feedback = correct_grammar(essay)
         organization_feedback = analyze_organization(essay)
         corrected_essay = correct_grammar(essay)
 
