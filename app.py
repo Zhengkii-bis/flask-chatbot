@@ -24,9 +24,7 @@ def check_spelling(text):
 
 
             
-
-
-def check_grammar(text):
+def correct_grammar(text):
     url = "https://api.languagetool.org/v2/check"
     params = {
         "text": text,
