@@ -1,7 +1,6 @@
-gunicorn
-textstat
-pyspellchecker
-textblob
 Flask
-gingerit
+textstat
+requests
 symspellpy
+pkg_resources
+gunicorn
