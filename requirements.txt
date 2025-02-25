@@ -3,5 +3,5 @@ textstat
 pyspellchecker
 textblob
 Flask
-language-tool-python
-vaderSentiment
+gingerit
+symspellpy
