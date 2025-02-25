@@ -72,8 +72,8 @@ def analyze_organization(text):
     return feedback if feedback else ["Organization looks good."]
 
 
-   
-    def calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback):
+  
+def calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback):
     score = 100  # Start with full points
 
     # **Readability Impact**
