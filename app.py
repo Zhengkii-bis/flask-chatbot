@@ -66,7 +66,37 @@ def analyze_organization(text):
     
     return feedback if feedback else ["Organization looks good."]
 
+def calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback):
+    score = 100  # Start with full points
 
+    # Deduct points for readability (Lower readability = lower score)
+    if readability < 50:
+        score -= 20
+    elif readability < 70:
+        score -= 10
+
+    # Deduct points based on spelling mistakes
+    spelling_count = len(spelling_mistakes) if isinstance(spelling_mistakes, list) else 0
+    if spelling_count > 5:
+        score -= 15
+    elif spelling_count > 2:
+        score -= 10
+
+    # Deduct points for grammar issues
+    grammar_count = len(grammar_feedback) if isinstance(grammar_feedback, list) else 0
+    if grammar_count > 5:
+        score -= 15
+    elif grammar_count > 2:
+        score -= 10
+
+    # Adjust score based on organization feedback
+    if "poor" in organization_feedback.lower():
+        score -= 15
+    elif "needs improvement" in organization_feedback.lower():
+        score -= 10
+
+    # Ensure score is within 0-100 range
+    return max(0, min(score, 100))
  
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -81,6 +111,8 @@ def index():
         organization_feedback = analyze_organization(essay)
         corrected_essay = correct_grammar(essay)
 
+        overall_grade = calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback)
+        
         return jsonify({
             "word_count": word_count,
             "spelling_mistakes": spelling_mistakes,
@@ -88,6 +120,7 @@ def index():
             "grammar_feedback": grammar_feedback,
             "organization_feedback": organization_feedback,
             "corrected_essay": corrected_essay
+            "overall_grade": overall_grade
         })
 
     return render_template("index.html")
