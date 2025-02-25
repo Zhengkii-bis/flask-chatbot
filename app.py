@@ -27,6 +27,7 @@ def check_grammar(text):
                 suggestions.append(match["replacements"][0]["value"])
         return suggestions if suggestions else ["No grammar issues found"]
     return ["Grammar check failed"]
+    print("GrammarBot API response:", response.json())
 
 def correct_spelling(text):
     words = text.split()
@@ -75,6 +76,8 @@ def index():
         corrected_essay = corrected_spelling
         
     return render_template('index.html', feedback=feedback, corrected_essay=corrected_essay)
-
+print("Received essay:", essay)
+print("Grammar feedback:", grammar_feedback)
+print("Corrected essay:", corrected_essay)
 if __name__ == '__main__':
     app.run(debug=True)
