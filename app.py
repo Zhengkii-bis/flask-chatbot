@@ -66,18 +66,8 @@ def analyze_organization(text):
     
     return feedback if feedback else ["Organization looks good."]
 
-import nltk
-from nltk.tokenize import sent_tokenize
 
-nltk.download("punkt")
-
-def clean_text(text):
-    text = re.sub(r'\s+', ' ', text).strip()
-    sentences = sent_tokenize(text)  # Split text into sentences
-    return " ".join(sentences)  # Join them back to maintain proper sentence structure
-
-
-
+ 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -88,7 +78,7 @@ def index():
     
         word_count = len(essay.split())
         spelling_mistakes = check_spelling(essay)
-        readability = textstat.flesch_reading_ease(essay_cleaned)
+        readability = textstat.flesch_reading_ease(essay)
         grammar_feedback = correct_grammar(essay)
         organization_feedback = analyze_organization(essay)
         corrected_essay = correct_grammar(essay)
