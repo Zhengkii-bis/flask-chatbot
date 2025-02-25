@@ -119,7 +119,7 @@ def index():
             "readability": readability,
             "grammar_feedback": grammar_feedback,
             "organization_feedback": organization_feedback,
-            "corrected_essay": corrected_essay
+            "corrected_essay": corrected_essay,
             "overall_grade": overall_grade
         })
 
