@@ -32,29 +32,59 @@
 <body>
 
     <h1>AI Essay Evaluator</h1>
-    <form action="/" method="post">
+    <form id="essayForm">
         <label for="essay">Enter your essay:</label><br>
         <textarea name="essay" id="essay"></textarea><br>
         <button type="submit">Evaluate</button>
     </form>
 
-    {% if feedback %}
-        <div class="output">
-            <h2>Analysis Results</h2>
-            <p><strong>Word Count:</strong> {{ word_count }}</p>
-            <p><strong>Spelling Mistakes:</strong> {{ spelling_mistakes }}</p>
-            <p><strong>Readability Score:</strong> {{ readability }}</p>
-            <p><strong>Grammar Suggestions:</strong> {{ grammar_feedback }}</p>
-            <p><strong>Organization Feedback:</strong> {{ organization_feedback }}</p>
-        </div>
-    {% endif %}
+    <div id="results" class="output" style="display:none;">
+        <h2>Analysis Results</h2>
+        <p><strong>Word Count:</strong> <span id="wordCount"></span></p>
+        <p><strong>Spelling Mistakes:</strong> <span id="spellingMistakes"></span></p>
+        <p><strong>Readability Score:</strong> <span id="readability"></span></p>
+        <p><strong>Grammar Suggestions:</strong> <span id="grammarFeedback"></span></p>
+        <p><strong>Organization Feedback:</strong> <span id="organizationFeedback"></span></p>
+    </div>
 
-    {% if corrected_essay %}
-        <div class="output">
-            <h2>Corrected Essay</h2>
-            <p>{{ corrected_essay }}</p>
-        </div>
-    {% endif %}
+    <div id="correctedEssayDiv" class="output" style="display:none;">
+        <h2>Corrected Essay</h2>
+        <p id="correctedEssay"></p>
+    </div>
+
+    <script>
+        document.getElementById("essayForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form from refreshing page
+
+            let essayText = document.getElementById("essay").value;
+            if (!essayText.trim()) {
+                alert("Please enter an essay before submitting.");
+                return;
+            }
+
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ essay: essayText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("wordCount").innerText = data.word_count;
+                document.getElementById("spellingMistakes").innerText = data.spelling_mistakes || "None";
+                document.getElementById("readability").innerText = data.readability;
+                document.getElementById("grammarFeedback").innerText = data.grammar_feedback || "No issues found.";
+                document.getElementById("organizationFeedback").innerText = data.organization_feedback || "Looks good!";
+                document.getElementById("correctedEssay").innerText = data.corrected_essay;
+
+                document.getElementById("results").style.display = "block";
+                document.getElementById("correctedEssayDiv").style.display = "block";
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("There was an issue processing your essay. Please try again.");
+            });
+        });
+    </script>
 
 </body>
 </html>
