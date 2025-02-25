@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import textstat
 import re
 import requests
@@ -55,27 +55,29 @@ def analyze_organization(text):
     
     return feedback if feedback else ["Organization looks good."]
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    feedback = ""
-    corrected_essay = ""
-    
-    if request.method == 'POST':
-        essay = request.form['essay']
+    if request.method == "POST":
+        data = request.get_json()
+        essay = data.get("essay", "")
+
         word_count = len(essay.split())
-        corrected_spelling = correct_spelling(essay)
+        spelling_mistakes = check_spelling(essay)
         readability = textstat.flesch_reading_ease(essay)
         grammar_feedback = check_grammar(essay)
         organization_feedback = analyze_organization(essay)
-        
-        feedback = f"Word Count: {word_count}<br>"
-        feedback += f"Readability Score: {readability:.2f}<br>"
-        feedback += "Grammar Feedback: " + ', '.join(grammar_feedback) + "<br>"
-        feedback += "Organization Feedback: " + ', '.join(organization_feedback)
-        
-        corrected_essay = corrected_spelling
-        
-    return render_template('index.html', feedback=feedback, corrected_essay=corrected_essay)
+        corrected_essay = correct_grammar(essay)
+
+        return jsonify({
+            "word_count": word_count,
+            "spelling_mistakes": spelling_mistakes,
+            "readability": readability,
+            "grammar_feedback": grammar_feedback,
+            "organization_feedback": organization_feedback,
+            "corrected_essay": corrected_essay
+        })
+
+    return render_template("index.html")
 print("Received essay:", essay)
 print("Grammar feedback:", grammar_feedback)
 print("Corrected essay:", corrected_essay)
