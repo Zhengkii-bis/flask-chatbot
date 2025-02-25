@@ -61,7 +61,7 @@ def analyze_organization(text):
     if avg_sentence_length > 25:
         feedback.append("Sentences may be too long. Consider breaking them up.")
     elif avg_sentence_length < 8:
-        feedback.append("Sentences may be too short. Consdef correct_grammar(text):        
+        feedback.append("Sentences may be too short. Consider expanding ideas.")         
     if num_paragraphs < 2:
         feedback.append("Consider adding more paragraphs to improve readability.")
     
