@@ -7,20 +7,19 @@ import pkg_resources
 
 app = Flask(__name__)
 
-# Load SymSpell
-sym_spell = SymSpell(max_dictionary_edit_distance=2)
-sym_spell.load_dictionary("frequency_dictionary_en_82_765.txt", term_index=0, count_index=1)
-
 def check_spelling(text):
     words = text.split()
-    misspelled = []
-    
+    misspelled = {}
+
     for word in words:
         suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
-        if not suggestions:
-            misspelled.append(word)  # If no suggestions, consider it misspelled
-    
-    return misspelled    
+        
+        if not suggestions or word.lower() not in [s.term.lower() for s in suggestions]:  
+            # If no valid suggestions or word is not a correct suggestion
+            best_suggestion = suggestions[0].term if suggestions else "No suggestion"
+            misspelled[word] = best_suggestion  
+
+    return misspelled  # Returns a dictionary of {wrong_word: suggested_correction}
 
 def correct_grammar(text):
     url = "https://api.languagetool.org/v2/check"
@@ -105,6 +104,7 @@ def index():
 
         word_count = len(essay.split())
         spelling_mistakes = check_spelling(essay)
+        spelling_feedback = " | ".join(f"{word} → {correction}" for word, correction in spelling_mistakes.items()) if spelling_mistakes else "No spelling mistakes found."
         readability = textstat.flesch_reading_ease(essay)
         organization_feedback = analyze_organization(essay)
         corrected_essay, grammar_issues = correct_grammar(essay)  # Now getting grammar issue count
@@ -113,7 +113,7 @@ def index():
 
         return jsonify({
             "word_count": word_count,
-            "spelling_mistakes": spelling_mistakes,
+            "spelling_mistakes": spelling_feedback,
             "readability": readability,
             "organization_feedback": organization_feedback,
             "corrected_essay": corrected_essay,
