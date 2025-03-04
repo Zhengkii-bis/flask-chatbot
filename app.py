@@ -70,6 +70,7 @@ def analyze_organization(text):
 
   
 def calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback):
+def calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback):
     score = 100  # Start with full points
 
     # **Readability Impact**
@@ -84,8 +85,11 @@ def calculate_grade(readability, spelling_mistakes, grammar_feedback, organizati
     spelling_count = len(spelling_mistakes) if isinstance(spelling_mistakes, list) else 0
     score -= min(spelling_count * 2, 15)  # Deduct 2 points per mistake, max 15
 
-    # **Grammar Issues Deduction**
-    grammar_count = grammar_feedback.count("|") + 1 if grammar_feedback else 0
+    # **Grammar Issues Deduction (Fixed)**
+    if isinstance(grammar_feedback, str):  # Convert string to issue count
+        grammar_count = grammar_feedback.count(" | ") + 1 if " | " in grammar_feedback else (0 if grammar_feedback == "No grammar issues found." else 1)
+    else:
+        grammar_count = len(grammar_feedback) if isinstance(grammar_feedback, list) else 0
     score -= min(grammar_count * 2, 15)  # Deduct 2 points per issue, max 15
 
     # **Organization Feedback Deduction**
