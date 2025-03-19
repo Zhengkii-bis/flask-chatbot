@@ -118,6 +118,7 @@ def index():
             "word_count": word_count,
             "spelling_mistakes": spelling_feedback,
             "readability": readability,
+            "grammar_feedback": grammar_issues,
             "organization_feedback": " | ".join(organization_feedback),
             "corrected_essay": corrected_essay,
             "overall_grade": overall_grade
