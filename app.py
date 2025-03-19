@@ -17,42 +17,35 @@ def check_spelling(text):
 
     for word in words:
         suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
-        
-        if not suggestions or word.lower() not in [s.term.lower() for s in suggestions]:  
-            # If no valid suggestions or word is not a correct suggestion
+        if not suggestions or word.lower() not in [s.term.lower() for s in suggestions]:
             best_suggestion = suggestions[0].term if suggestions else "No suggestion"
             misspelled[word] = best_suggestion  
 
-    return misspelled  # Returns a dictionary of {wrong_word: suggested_correction}
+    return misspelled  
 
 def correct_grammar(text):
     url = "https://api.languagetool.org/v2/check"
-    params = {
-        "text": text,
-        "language": "en-US"
-    }
+    params = {"text": text, "language": "en-US"}
     response = requests.post(url, data=params)
-    
+
     if response.status_code == 200:
         result = response.json()
         matches = result.get("matches", [])
-        
+
         if not matches:
-            return text, 0  # No corrections needed, 0 grammar issues
+            return text, "No possible grammatical error."  # If no errors, return this message
 
-    corrected_text = text
-    for match in reversed(matches):
-        if match["replacements"]:
-            suggestion = match["replacements"][0]["value"]
-            start, end = match["offset"], match["offset"] + match["length"]
-            corrected_text = corrected_text[:start] + suggestion + corrected_text[end:]
+        corrected_text = text
+        for match in reversed(matches):
+            if match["replacements"]:
+                suggestion = match["replacements"][0]["value"]
+                start, end = match["offset"], match["offset"] + match["length"]
+                corrected_text = corrected_text[:start] + suggestion + corrected_text[end:]
 
-    if corrected_text != text:  # Check if any corrections were made
-        return "".join(corrected_text), len(matches)  
-    else:
-        return text, 0  # No corrections, return original text
-                
-    
+        return corrected_text, len(matches)  # Return corrected text and grammar issue count
+
+    return text, "Error checking grammar."
+
 def analyze_organization(text):
     sentences = re.split(r'(?<=[.!?]) +', text)
     num_sentences = len(sentences)
@@ -70,36 +63,27 @@ def analyze_organization(text):
     
     return feedback if feedback else ["Organization looks good."]
 
+def calculate_grade(readability, spelling_mistakes, grammar_issues, organization_feedback):
+    score = 100  
 
-def calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback):
-    score = 100  # Start with full points
-
-    # **Readability Impact**
     if readability < 30:
-        score -= 30
-    elif readability < 50:
-        score -= 20
-    elif readability < 70:
         score -= 10
+    elif readability < 50:
+        score -= 5
+    elif readability < 70:
+        score -= 2
 
-    # **Spelling Mistakes Deduction**
-    spelling_count = len(spelling_mistakes)  # Dictionary length gives the number of mistakes
-    score -= min(spelling_count * 2, 15)  # Deduct 2 points per mistake, max 15
+    spelling_count = len(spelling_mistakes)
+    score -= min(spelling_count * 2, 15)  
 
-    # **Grammar Issues Deduction (Fixed)**
-    if isinstance(grammar_feedback, str):  # Convert string to issue count
-        grammar_count = grammar_feedback.count(" | ") + 1 if " | " in grammar_feedback else (0 if grammar_feedback == "No grammar issues found." else 1)
-    else:
-        grammar_count = len(grammar_feedback) if isinstance(grammar_feedback, list) else 0
-    score -= min(grammar_count * 2, 15)  # Deduct 2 points per issue, max 15
+    grammar_count = grammar_issues if isinstance(grammar_issues, int) else 0
+    score -= min(grammar_count * 2, 15)  
 
-    # **Organization Feedback Deduction**
     organization_issues = len(organization_feedback) if isinstance(organization_feedback, list) else 0
-    score -= min(organization_issues * 5, 15)  # Deduct 5 points per issue, max 15
+    score -= min(organization_issues * 5, 15)  
 
-    # **Ensure score stays within 0-100 range**
-    return round(max(0, min(score, 100)), 2)  # Round to 2 decimal places for precision
- 
+    return round(max(0, min(score, 100)), 2)  
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -111,15 +95,15 @@ def index():
         spelling_feedback = " | ".join(f"{word} → {correction}" for word, correction in spelling_mistakes.items()) if spelling_mistakes else "No spelling mistakes found."
         readability = textstat.flesch_reading_ease(essay)
         organization_feedback = analyze_organization(essay)
-        corrected_essay, grammar_issues = correct_grammar(essay)  # Now getting grammar issue count
+        corrected_essay, grammar_feedback = correct_grammar(essay)  
 
-        overall_grade = calculate_grade(readability, spelling_mistakes, grammar_issues, organization_feedback)  # Pass grammar_issues instead of undefined variable
+        overall_grade = calculate_grade(readability, spelling_mistakes, grammar_feedback, organization_feedback)
 
         return jsonify({
             "word_count": word_count,
             "spelling_mistakes": spelling_feedback,
             "readability": readability,
-            "grammar_feedback": grammar_issues,
+            "grammar_feedback": grammar_feedback,
             "organization_feedback": " | ".join(organization_feedback),
             "corrected_essay": corrected_essay,
             "overall_grade": overall_grade
