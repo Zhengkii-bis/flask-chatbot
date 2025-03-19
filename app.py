@@ -42,7 +42,7 @@ def correct_grammar(text):
 
     corrected_text = text
     for match in reversed(matches):
-    if match["replacements"]:
+      if match["replacements"]:
         suggestion = match["replacements"][0]["value"]
         start, end = match["offset"], match["offset"] + match["length"]
         corrected_text = corrected_text[:start] + suggestion + corrected_text[end:]
