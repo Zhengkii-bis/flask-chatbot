@@ -74,13 +74,13 @@ def calculate_grade(readability, spelling_mistakes, grammar_issues, organization
         score -= 2
 
     spelling_count = len(spelling_mistakes)
-    score -= min(spelling_count * 2, 15)  
+    score -= min(spelling_count * 2, 5)  
 
     grammar_count = grammar_issues if isinstance(grammar_issues, int) else 0
-    score -= min(grammar_count * 2, 15)  
+    score -= min(grammar_count * 2, 7)  
 
     organization_issues = len(organization_feedback) if isinstance(organization_feedback, list) else 0
-    score -= min(organization_issues * 5, 15)  
+    score -= min(organization_issues * 5, 7)  
 
     return round(max(0, min(score, 100)), 2)  
 
