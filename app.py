@@ -5,6 +5,10 @@ import requests
 from symspellpy import SymSpell, Verbosity
 import pkg_resources
 
+sym_spell = SymSpell()
+dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
+
 app = Flask(__name__)
 
 def check_spelling(text):
@@ -36,14 +40,13 @@ def correct_grammar(text):
         if not matches:
             return text, 0  # No corrections needed, 0 grammar issues
 
-        corrected_text = list(text)  # Convert to list to allow modifications
-        for match in reversed(matches):  # Reverse to avoid index shift issues
-            if match["replacements"]:
-                suggestion = match["replacements"][0]["value"]
-                start = match["offset"]
-                end = start + match["length"]
-                corrected_text[start:end] = suggestion  # Apply correction
-
+        corrected_text = text
+         for match in reversed(matches):
+          if match["replacements"]:
+           suggestion = match["replacements"][0]["value"]
+           start, end = match["offset"], match["offset"] + match["length"]
+           corrected_text = corrected_text[:start] + suggestion + corrected_text[end:]
+    
         return "".join(corrected_text), len(matches)  # Return corrected essay + count of grammar issues
     else:
         return text, 0  # Return original text with 0 issues if API fails
@@ -79,7 +82,7 @@ def calculate_grade(readability, spelling_mistakes, grammar_feedback, organizati
         score -= 10
 
     # **Spelling Mistakes Deduction**
-    spelling_count = len(spelling_mistakes) if isinstance(spelling_mistakes, list) else 0
+    spelling_count = len(spelling_mistakes)  # Dictionary length gives the number of mistakes
     score -= min(spelling_count * 2, 15)  # Deduct 2 points per mistake, max 15
 
     # **Grammar Issues Deduction (Fixed)**
@@ -115,7 +118,7 @@ def index():
             "word_count": word_count,
             "spelling_mistakes": spelling_feedback,
             "readability": readability,
-            "organization_feedback": organization_feedback,
+            "organization_feedback": " | ".join(organization_feedback),
             "corrected_essay": corrected_essay,
             "overall_grade": overall_grade
         })
