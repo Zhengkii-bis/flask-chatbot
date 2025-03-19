@@ -40,8 +40,8 @@ def correct_grammar(text):
         if not matches:
             return text, 0  # No corrections needed, 0 grammar issues
 
-   corrected_text = text
-   for match in reversed(matches):
+    corrected_text = text
+    for match in reversed(matches):
       if match["replacements"]:
         suggestion = match["replacements"][0]["value"]
         start, end = match["offset"], match["offset"] + match["length"]
