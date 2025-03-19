@@ -155,10 +155,10 @@ button:hover {
                 return;
             }
 
-            fetch('/api/analyze', {
-           method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ essay: userInput })  
+            fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ essay: essayText })  
 })
 .then(response => response.json())
 .then(data => {
