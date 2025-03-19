@@ -48,7 +48,7 @@ def correct_grammar(text):
         corrected_text = corrected_text[:start] + suggestion + corrected_text[end:]
 
 return corrected_text, len(matches)  # Moved outside loop
-    else:
+      else:
         return text, 0  # Return original text with 0 issues if API fails
                 
     
